@@ -15,25 +15,33 @@ body{
 
 /* 타이머 바 */
 .timer-bar{
-  text-align:center;padding:20px 16px 16px;
-  color:#fff;transition:background 0.25s;background:#3a3a3a;
+  text-align:center;padding:24px 16px 18px;
+  color:#fff;transition:background 0.2s;background:#3a3a3a;
 }
-.timer-bar.wait {background:#555;}
+.timer-bar.count{background:#555;}
 .timer-bar.near {background:#b35a00;}
 .timer-bar.open {background:#1aaa8e;}
 .timer-bar.early{background:#c0392b;}
 .timer-bar.done {background:#185fa5;}
-
-/* 큰 숫자 */
+.t-time-row{
+  display:flex;align-items:baseline;justify-content:center;gap:0;
+  font-variant-numeric:tabular-nums;line-height:1;
+}
+.t-prefix{
+  font-size:52px;font-weight:700;opacity:0.75;letter-spacing:1px;
+}
 .t-big{
-  font-size:72px;font-weight:700;line-height:1;
-  font-variant-numeric:tabular-nums;letter-spacing:-2px;
+  font-size:52px;font-weight:700;
+  font-variant-numeric:tabular-nums;letter-spacing:1px;
 }
 .t-ms{
-  font-size:28px;font-weight:500;opacity:0.85;
-  font-variant-numeric:tabular-nums;margin-top:2px;
+  font-size:22px;font-weight:500;opacity:0.85;
+  font-variant-numeric:tabular-nums;margin-top:6px;
+  letter-spacing:1px;
 }
-.t-label{font-size:12px;margin-top:8px;opacity:0.65;letter-spacing:0.5px;}
+.t-label{font-size:12px;margin-top:10px;opacity:0.65;letter-spacing:0.5px;}
+
+
 
 /* 폼 */
 .form-body{
@@ -76,7 +84,7 @@ body{
 .agl{display:flex;align-items:flex-start;gap:8px;flex:1;}
 .agt{font-size:13px;color:#333;line-height:1.5;}
 
-/* 컨트롤 */
+/* 버튼들 */
 .ctrl{margin:10px 12px 0;display:flex;gap:8px;}
 .start-btn{
   flex:1;padding:13px;background:#3dcbb4;color:#fff;
@@ -89,8 +97,6 @@ body{
   border:none;border-radius:10px;font-size:15px;font-weight:700;
   cursor:pointer;font-family:inherit;display:none;
 }
-
-/* 참여 버튼 */
 .sub-area{margin:10px 12px 0;}
 .sub-btn{
   width:100%;padding:17px;background:#3dcbb4;color:#fff;
@@ -128,14 +134,14 @@ body{
 <body>
 <div id="wrap">
 
-  <!-- 타이머 -->
   <div class="timer-bar" id="tBar">
-    <div class="t-big" id="tBig">40</div>
-    <div class="t-ms"  id="tMs">000</div>
+    <div class="t-time-row">
+      <span class="t-prefix" id="tPrefix">18:59:</span><span class="t-big" id="tBig">--</span>
+    </div>
+    <div class="t-ms"   id="tMs">---</div>
     <div class="t-label" id="tLabel">입력 후 시작을 누르세요</div>
   </div>
 
-  <!-- 폼 -->
   <div class="form-body">
     <div class="form-title">신청 정보</div>
     <div class="info-box">
@@ -153,13 +159,11 @@ body{
       </div>
       <div class="err" id="errName">이름과 성을 모두 입력해주세요.</div>
     </div>
-
     <div class="fg">
       <div class="fl">생년월일 <span class="req">*</span></div>
       <input class="ri" type="text" id="inBirth" placeholder="8자리 (예: 19990101)" maxlength="8" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'')"/>
       <div class="err" id="errBirth">생년월일 8자리를 입력해주세요.</div>
     </div>
-
     <div class="fg">
       <div class="fl">연락처 <span class="req">*</span></div>
       <div class="pr">
@@ -168,7 +172,6 @@ body{
       </div>
       <div class="err" id="errPhone">올바른 전화번호를 입력해주세요.</div>
     </div>
-
     <div class="divider"></div>
     <div class="ag">
       <div class="agl">
@@ -186,7 +189,6 @@ body{
     <button class="start-btn" id="startBtn" onclick="startGame()">▶ 시작</button>
     <button class="reset-btn" id="resetBtn" onclick="resetGame()">↺ 초기화</button>
   </div>
-
   <div class="sub-area">
     <button class="sub-btn" id="subBtn" onclick="pressBtn()" disabled>참여 신청</button>
   </div>
@@ -206,9 +208,13 @@ let phase = 'idle';
 let playerName = '';
 let rafId = null;
 let hasPressed = false;
-let startedAt = 0;  // 시작 버튼 누른 timestamp
-let openAt = 0;     // 00이 되는 순간 (startedAt + 60000)
+let startedAt = 0;  // 시작 버튼 누른 시각
+let openAt = 0;     // 00이 되는 시각 (startedAt + 19000ms, 41~59 = 19초)
 let log = [];
+
+// 41부터 시작해서 59까지 = 19초 (41,42,...59 → 19개)
+const COUNT_DURATION = 19000;
+const COUNT_START    = 41;  // 첫 숫자
 
 function pad2(n){ return n.toString().padStart(2,'0'); }
 function pad3(n){ return n.toString().padStart(3,'0'); }
@@ -216,8 +222,8 @@ function pad3(n){ return n.toString().padStart(3,'0'); }
 function syncName(){
   const f = document.getElementById('inFirst').value.trim();
   const l = document.getElementById('inLast').value.trim();
-  document.getElementById('dFirst').textContent = f || '───';
-  document.getElementById('dLast').textContent  = l || '───';
+  document.getElementById('dFirst').textContent = f||'───';
+  document.getElementById('dLast').textContent  = l||'───';
 }
 
 function validate(){
@@ -226,24 +232,25 @@ function validate(){
   const l = document.getElementById('inLast').value.trim();
   const b = document.getElementById('inBirth').value.trim();
   const p = document.getElementById('inPhone').value.trim();
-  setErr('errName',  !f||!l);        if(!f||!l)       ok = false;
-  setErr('errBirth', b.length!==8);  if(b.length!==8) ok = false;
-  setErr('errPhone', p.length<10);   if(p.length<10)  ok = false;
+  setErr('errName',  !f||!l);        if(!f||!l)       ok=false;
+  setErr('errBirth', b.length!==8);  if(b.length!==8) ok=false;
+  setErr('errPhone', p.length<10);   if(p.length<10)  ok=false;
   return ok;
 }
-function setErr(id, show){ document.getElementById(id).classList.toggle('on', show); }
+function setErr(id,show){ document.getElementById(id).classList.toggle('on',show); }
 
 function startGame(){
   if(!validate()) return;
 
   const f = document.getElementById('inFirst').value.trim();
   const l = document.getElementById('inLast').value.trim();
-  playerName = l + f;
+  playerName = l+f;
 
+  // 카운트 시작 시각 고정 (지금부터 19초 뒤 = 00초)
   startedAt = Date.now();
-  openAt    = startedAt + 20000;  // 정확히 20초 뒤
+  openAt    = startedAt + COUNT_DURATION;
 
-  phase = 'wait'; hasPressed = false;
+  phase = 'count'; hasPressed = false;
   setInputsDisabled(true);
   document.getElementById('startBtn').style.display = 'none';
   document.getElementById('resetBtn').style.display = 'inline-block';
@@ -253,35 +260,41 @@ function startGame(){
   btn.className = 'sub-btn locked';
   btn.textContent = '참여 신청 (00이 되면 눌러! 일찍 누르면 실격)';
 
-  setBarCls('wait');
-  countdownLoop();
+  setBarCls('count');
+  countLoop();
 }
 
-/* 40 → 59 카운트업 후 00 열림 */
-function countdownLoop(){
-  if(phase !== 'wait' && phase !== 'near') return;
+/* 41 → 42 → ... → 59 카운트업 */
+function countLoop(){
+  if(phase !== 'count' && phase !== 'near') return;
 
-  const rem     = openAt - Date.now();
+  const now     = Date.now();
+  const rem     = openAt - now;      // 남은 ms
+
   if(rem <= 0){ openNow(); return; }
 
-  const elapsed = Date.now() - startedAt;
-  const sec     = 40 + Math.floor(elapsed / 1000); // 40, 41 ... 59
-  const ms      = Math.floor(elapsed % 1000);
+  const elapsed = now - startedAt;                          // 경과 ms (0 ~ 19000)
+  const sec     = COUNT_START + Math.floor(elapsed / 1000); // 41, 42 ... 59
+  const ms      = Math.floor(elapsed % 1000);               // 000 ~ 999
 
+  document.getElementById('tPrefix').textContent = '18:59:';
   document.getElementById('tBig').textContent = pad2(Math.min(sec, 59));
   document.getElementById('tMs').textContent  = pad3(ms);
+  document.getElementById('tLabel').textContent = '00이 되면 눌러요!';
 
   if(rem <= 5000) setBarCls('near');
-  else            setBarCls('wait');
+  else            setBarCls('count');
 
-  document.getElementById('tLabel').textContent = '대기 중 — 00이 되면 눌러요!';
-  rafId = requestAnimationFrame(countdownLoop);
+  rafId = requestAnimationFrame(countLoop);
 }
 
-/* 00:000 — 이제 누르는 순간 */
+/* 00:000 열림 */
 function openNow(){
   phase = 'open';
   setBarCls('open');
+  document.getElementById('tPrefix').textContent = '19:00:';
+  document.getElementById('tBig').textContent = '00';
+  document.getElementById('tMs').textContent  = '000';
 
   const btn = document.getElementById('subBtn');
   btn.className = 'sub-btn go';
@@ -289,9 +302,10 @@ function openNow(){
 
   function countUp(){
     if(phase !== 'open') return;
-    const el  = Date.now() - openAt;   // openAt 기준 경과 ms
+    const el  = Date.now() - openAt;
     const s   = Math.floor(el / 1000);
     const ms3 = Math.floor(el % 1000);
+    document.getElementById('tPrefix').textContent = '19:00:';
     document.getElementById('tBig').textContent = pad2(s);
     document.getElementById('tMs').textContent  = pad3(ms3);
     document.getElementById('tLabel').textContent = '지금 눌러!';
@@ -300,35 +314,29 @@ function openNow(){
   rafId = requestAnimationFrame(countUp);
 }
 
-/* 버튼 클릭 */
+/* 참여 신청 클릭 */
 function pressBtn(){
   if(phase === 'idle' || hasPressed) return;
   hasPressed = true;
 
-  // 일찍 누름
-  if(phase === 'wait' || phase === 'near'){
+  // 일찍 누름 → 실격
+  if(phase === 'count' || phase === 'near'){
     cancelAnimationFrame(rafId);
     phase = 'done';
     const earlyMs = openAt - Date.now();
-    const es = Math.floor(earlyMs / 1000);
-    const em = Math.floor(earlyMs % 1000);
-    document.getElementById('tBig').textContent = pad2(es);
-    document.getElementById('tMs').textContent  = pad3(em);
     setBarCls('early');
-    document.getElementById('tLabel').textContent = '실격! ' + (earlyMs/1000).toFixed(3) + '초 일찍 눌렀어요';
+    document.getElementById('tBig').textContent = '✕';
+    document.getElementById('tMs').textContent  = '';
+    document.getElementById('tLabel').textContent = '실격! ' + (earlyMs/1000).toFixed(3) + '초 일찍';
     lockBtn(); addLog(playerName, null, true); endState();
     return;
   }
 
-  // 정상 클릭
+  // 00초 이후 클릭 → 바로 기록
   if(phase === 'open'){
     cancelAnimationFrame(rafId);
-    const diffMs = Date.now() - openAt;  // openAt 고정값으로 정확히 계산
+    const diffMs = Date.now() - openAt;
     phase = 'done';
-    const s   = Math.floor(diffMs / 1000);
-    const ms3 = Math.floor(diffMs % 1000);
-    document.getElementById('tBig').textContent = pad2(s);
-    document.getElementById('tMs').textContent  = pad3(ms3);
     setBarCls('done');
     document.getElementById('tLabel').textContent = '+' + (diffMs/1000).toFixed(3) + '초';
     lockBtn(); addLog(playerName, diffMs, false); endState();
@@ -336,11 +344,11 @@ function pressBtn(){
 }
 
 function setBarCls(cls){
-  document.getElementById('tBar').className = 'timer-bar' + (cls ? ' '+cls : '');
+  document.getElementById('tBar').className = 'timer-bar '+(cls||'');
 }
 function lockBtn(){
   const b = document.getElementById('subBtn');
-  b.disabled = true; b.className = 'sub-btn'; b.textContent = '참여 신청';
+  b.disabled=true; b.className='sub-btn'; b.textContent='참여 신청';
 }
 function endState(){
   document.getElementById('startBtn').style.display = 'inline-block';
@@ -349,77 +357,75 @@ function endState(){
 }
 function resetGame(){
   cancelAnimationFrame(rafId);
-  phase = 'idle'; hasPressed = false; startedAt = 0; openAt = 0;
-  document.getElementById('tBig').textContent = '40';
-  document.getElementById('tMs').textContent  = '000';
+  phase='idle'; hasPressed=false; startedAt=0; openAt=0;
   setBarCls('');
-  document.getElementById('tLabel').textContent = '입력 후 시작을 누르세요';
+  document.getElementById('tPrefix').textContent = '18:59:';
+  document.getElementById('tBig').textContent  = '--';
+  document.getElementById('tMs').textContent   = '---';
+  document.getElementById('tLabel').textContent= '입력 후 시작을 누르세요';
   document.getElementById('startBtn').style.display = 'inline-block';
   document.getElementById('resetBtn').style.display = 'none';
-  const b = document.getElementById('subBtn');
-  b.disabled = true; b.className = 'sub-btn'; b.textContent = '참여 신청';
+  const b=document.getElementById('subBtn');
+  b.disabled=true; b.className='sub-btn'; b.textContent='참여 신청';
   setInputsDisabled(false);
 }
 function setInputsDisabled(v){
-  ['inFirst','inLast','inBirth','inPhone'].forEach(id => {
-    const el = document.getElementById(id); if(el) el.disabled = v;
+  ['inFirst','inLast','inBirth','inPhone'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.disabled=v;
   });
 }
 
 /* 로그 */
 function addLog(name, ms, isEarly){
-  const b = document.getElementById('inBirth').value.trim();
-  const p = document.getElementById('inPhone').value.trim();
-  log.unshift({ name, ms, isEarly, birth: b, phone: p, ts: new Date() });
+  const b=document.getElementById('inBirth').value.trim();
+  const p=document.getElementById('inPhone').value.trim();
+  log.unshift({name,ms,isEarly,birth:b,phone:p,ts:new Date()});
   renderLog();
 }
 function renderLog(){
-  const list = document.getElementById('logList');
-  if(!log.length){ list.innerHTML = '<div class="log-empty">아직 기록이 없습니다</div>'; return; }
+  const list=document.getElementById('logList');
+  if(!log.length){list.innerHTML='<div class="log-empty">아직 기록이 없습니다</div>';return;}
+  const valid=log.filter(e=>!e.isEarly&&e.ms!=null).sort((a,b)=>a.ms-b.ms);
+  list.innerHTML='';
+  log.forEach(entry=>{
+    const wrap=document.createElement('div'); wrap.className='log-entry';
+    const top =document.createElement('div'); top.className ='log-top';
 
-  const valid = log.filter(e => !e.isEarly && e.ms != null).sort((a,b) => a.ms - b.ms);
-  list.innerHTML = '';
+    const rank=document.createElement('div'); rank.className='log-rank';
+    if(!entry.isEarly&&entry.ms!=null){
+      const r=valid.indexOf(entry)+1;
+      rank.textContent=r===1?'🥇':r===2?'🥈':r===3?'🥉':r+'위';
+    } else rank.textContent='✕';
 
-  log.forEach(entry => {
-    const wrap = document.createElement('div'); wrap.className = 'log-entry';
-    const top  = document.createElement('div'); top.className  = 'log-top';
+    const nm=document.createElement('div'); nm.className='log-name';
+    nm.textContent=entry.name;
 
-    const rank = document.createElement('div'); rank.className = 'log-rank';
-    if(!entry.isEarly && entry.ms != null){
-      const r = valid.indexOf(entry) + 1;
-      rank.textContent = r===1?'🥇':r===2?'🥈':r===3?'🥉':r+'위';
-    } else { rank.textContent = '✕'; }
-
-    const nm = document.createElement('div'); nm.className = 'log-name';
-    nm.textContent = entry.name;
-
-    const diff = document.createElement('div'); diff.className = 'log-diff';
+    const diff=document.createElement('div'); diff.className='log-diff';
     if(entry.isEarly){
-      diff.textContent = '실격';
-      diff.classList.add('disq');
+      diff.textContent='실격'; diff.classList.add('disq');
     } else {
-      diff.textContent = '+' + (entry.ms/1000).toFixed(3) + '초';
-      if(valid[0] === entry) diff.classList.add('best');
+      diff.textContent='+'+(entry.ms/1000).toFixed(3)+'초';
+      if(valid[0]===entry) diff.classList.add('best');
     }
 
-    const ts = document.createElement('div'); ts.className = 'log-ts';
-    const t = entry.ts;
-    ts.textContent = [t.getHours(), t.getMinutes(), t.getSeconds()]
-      .map(n => n.toString().padStart(2,'0')).join(':');
+    const ts=document.createElement('div'); ts.className='log-ts';
+    const t=entry.ts;
+    ts.textContent=[t.getHours(),t.getMinutes(),t.getSeconds()]
+      .map(n=>n.toString().padStart(2,'0')).join(':');
 
-    top.append(rank, nm, diff, ts);
+    top.append(rank,nm,diff,ts);
 
-    const sub = document.createElement('div'); sub.className = 'log-sub';
-    const bf = entry.birth || '';
-    const pf = (entry.phone||'').replace(/(\d{3})(\d{3,4})(\d{4})/, '$1-$2-$3');
-    const bFmt = bf.length===8 ? bf.slice(0,4)+'.'+bf.slice(4,6)+'.'+bf.slice(6) : bf;
-    sub.textContent = bFmt + (bFmt&&pf ? '  |  ' : '') + pf;
+    const sub=document.createElement('div'); sub.className='log-sub';
+    const bf=entry.birth||'';
+    const pf=(entry.phone||'').replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3');
+    const bFmt=bf.length===8?bf.slice(0,4)+'.'+bf.slice(4,6)+'.'+bf.slice(6):bf;
+    sub.textContent=bFmt+(bFmt&&pf?'  |  ':'')+pf;
 
-    wrap.append(top, sub);
+    wrap.append(top,sub);
     list.appendChild(wrap);
   });
 }
-function clearLog(){ log = []; renderLog(); }
+function clearLog(){log=[];renderLog();}
 </script>
 </body>
 </html>
