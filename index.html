@@ -13,59 +13,27 @@ body{
 }
 #wrap{width:100%;max-width:430px;background:#f5f5f5;min-height:100vh;}
 
-/* 상단 */
-.top-bar{
-  background:#fff;padding:12px 14px;
-  border-bottom:1px solid #e8e8e8;
-  display:flex;gap:8px;align-items:center;flex-wrap:wrap;
-}
-.top-bar label{font-size:13px;color:#888;white-space:nowrap;}
-.time-pick{
-  display:flex;align-items:center;gap:3px;
-  background:#f7f7f7;border:1.5px solid #ddd;
-  border-radius:8px;padding:7px 10px;
-}
-.time-pick input{
-  width:26px;border:none;background:transparent;
-  font-size:16px;font-weight:700;color:#111;
-  text-align:center;font-family:inherit;outline:none;
-  font-variant-numeric:tabular-nums;padding:0;
-}
-.time-pick .sep{color:#bbb;font-size:16px;font-weight:400;}
-.go-btn{
-  padding:8px 18px;background:#3dcbb4;color:#fff;
-  border:none;border-radius:8px;font-size:13px;font-weight:700;
-  cursor:pointer;font-family:inherit;
-}
-.go-btn:disabled{background:#ccc;cursor:not-allowed;}
-.rst-btn{
-  padding:8px 12px;background:#888;color:#fff;
-  border:none;border-radius:8px;font-size:13px;font-weight:700;
-  cursor:pointer;font-family:inherit;display:none;
-}
-
-/* 타이머 바 — 현재시각 크게, 상태 작게 */
+/* 타이머 바 */
 .timer-bar{
-  text-align:center;padding:16px 16px 12px;
-  color:#fff;transition:background 0.25s;
+  text-align:center;padding:20px 16px 16px;
+  color:#fff;transition:background 0.25s;background:#3a3a3a;
 }
-.timer-bar.idle  {background:#3a3a3a;}
-.timer-bar.wait  {background:#555;}
-.timer-bar.near  {background:#b35a00;}
-.timer-bar.open  {background:#1aaa8e;}
-.timer-bar.early {background:#c0392b;}
-.timer-bar.done  {background:#185fa5;}
+.timer-bar.wait {background:#555;}
+.timer-bar.near {background:#b35a00;}
+.timer-bar.open {background:#1aaa8e;}
+.timer-bar.early{background:#c0392b;}
+.timer-bar.done {background:#185fa5;}
 
-/* 현재 시각 */
-.t-now{
-  font-size:42px;font-weight:700;
-  font-variant-numeric:tabular-nums;letter-spacing:3px;line-height:1;
+/* 큰 숫자 */
+.t-big{
+  font-size:72px;font-weight:700;line-height:1;
+  font-variant-numeric:tabular-nums;letter-spacing:-2px;
 }
-/* 상태/결과 텍스트 */
-.t-status{
-  font-size:13px;margin-top:6px;opacity:0.8;
-  font-variant-numeric:tabular-nums;letter-spacing:0.5px;
+.t-ms{
+  font-size:28px;font-weight:500;opacity:0.85;
+  font-variant-numeric:tabular-nums;margin-top:2px;
 }
+.t-label{font-size:12px;margin-top:8px;opacity:0.65;letter-spacing:0.5px;}
 
 /* 폼 */
 .form-body{
@@ -108,6 +76,20 @@ body{
 .agl{display:flex;align-items:flex-start;gap:8px;flex:1;}
 .agt{font-size:13px;color:#333;line-height:1.5;}
 
+/* 컨트롤 */
+.ctrl{margin:10px 12px 0;display:flex;gap:8px;}
+.start-btn{
+  flex:1;padding:13px;background:#3dcbb4;color:#fff;
+  border:none;border-radius:10px;font-size:15px;font-weight:700;
+  cursor:pointer;font-family:inherit;
+}
+.start-btn:disabled{background:#ccc;cursor:not-allowed;}
+.reset-btn{
+  padding:13px 18px;background:#888;color:#fff;
+  border:none;border-radius:10px;font-size:15px;font-weight:700;
+  cursor:pointer;font-family:inherit;display:none;
+}
+
 /* 참여 버튼 */
 .sub-area{margin:10px 12px 0;}
 .sub-btn{
@@ -118,8 +100,8 @@ body{
 .sub-btn:active{transform:scale(0.97);}
 .sub-btn:disabled{background:#ccc;cursor:not-allowed;}
 .sub-btn.locked{background:#e05a2b;animation:puls .7s ease-in-out infinite alternate;}
-.sub-btn.go{animation:goA .4s ease-in-out infinite alternate;}
-@keyframes puls{from{opacity:1}to{opacity:.65}}
+.sub-btn.go{animation:goA .35s ease-in-out infinite alternate;}
+@keyframes puls{from{opacity:1}to{opacity:.6}}
 @keyframes goA{from{background:#3dcbb4}to{background:#1aaa8e}}
 
 .footer-nav{text-align:center;margin-top:18px;font-size:12px;color:#bbb;}
@@ -146,30 +128,11 @@ body{
 <body>
 <div id="wrap">
 
-  <!-- 목표 시각 설정 + 시작 -->
-  <div class="top-bar">
-    <label>목표 시각</label>
-    <div class="time-pick">
-      <input id="tH" value="14" maxlength="2" inputmode="numeric"
-        oninput="this.value=this.value.replace(/\D/g,'').slice(0,2)"
-        onblur="padT(this,23)"/>
-      <span class="sep">:</span>
-      <input id="tM" value="00" maxlength="2" inputmode="numeric"
-        oninput="this.value=this.value.replace(/\D/g,'').slice(0,2)"
-        onblur="padT(this,59)"/>
-      <span class="sep">:</span>
-      <input id="tS" value="00" maxlength="2" inputmode="numeric"
-        oninput="this.value=this.value.replace(/\D/g,'').slice(0,2)"
-        onblur="padT(this,59)"/>
-    </div>
-    <button class="go-btn" id="startBtn" onclick="startGame()">▶ 시작</button>
-    <button class="rst-btn" id="resetBtn" onclick="resetGame()">↺ 초기화</button>
-  </div>
-
-  <!-- 타이머: 현재 시각 크게 -->
-  <div class="timer-bar idle" id="tBar">
-    <div class="t-now" id="tNow">--:--:--</div>
-    <div class="t-status" id="tStatus">목표 시각을 설정하고 시작하세요</div>
+  <!-- 타이머 -->
+  <div class="timer-bar" id="tBar">
+    <div class="t-big" id="tBig">40</div>
+    <div class="t-ms"  id="tMs">000</div>
+    <div class="t-label" id="tLabel">입력 후 시작을 누르세요</div>
   </div>
 
   <!-- 폼 -->
@@ -219,6 +182,11 @@ body{
     </div>
   </div>
 
+  <div class="ctrl">
+    <button class="start-btn" id="startBtn" onclick="startGame()">▶ 시작</button>
+    <button class="reset-btn" id="resetBtn" onclick="resetGame()">↺ 초기화</button>
+  </div>
+
   <div class="sub-area">
     <button class="sub-btn" id="subBtn" onclick="pressBtn()" disabled>참여 신청</button>
   </div>
@@ -236,27 +204,14 @@ body{
 <script>
 let phase = 'idle';
 let playerName = '';
-let tH = 14, tM = 0, tS = 0;
 let rafId = null;
 let hasPressed = false;
-let openAt = 0;   // 목표 시각 정확한 ms timestamp
+let startedAt = 0;  // 시작 버튼 누른 timestamp
+let openAt = 0;     // 00이 되는 순간 (startedAt + 60000)
 let log = [];
 
 function pad2(n){ return n.toString().padStart(2,'0'); }
-function padT(el, max){
-  let v = parseInt(el.value) || 0;
-  if(v > max) v = max;
-  el.value = pad2(v);
-}
-
-/* ── 현재 시각 항상 표시 ── */
-function clockLoop(){
-  const n = new Date();
-  document.getElementById('tNow').textContent =
-    pad2(n.getHours()) + ':' + pad2(n.getMinutes()) + ':' + pad2(n.getSeconds());
-  requestAnimationFrame(clockLoop);
-}
-clockLoop();
+function pad3(n){ return n.toString().padStart(3,'0'); }
 
 function syncName(){
   const f = document.getElementById('inFirst').value.trim();
@@ -278,27 +233,15 @@ function validate(){
 }
 function setErr(id, show){ document.getElementById(id).classList.toggle('on', show); }
 
-/* ── 목표 timestamp 계산 ── */
-function calcOpenAt(){
-  const now = new Date();
-  const t = new Date(now.getFullYear(), now.getMonth(), now.getDate(), tH, tM, tS, 0);
-  // 이미 지난 시각이면 내일로
-  if(t.getTime() <= Date.now()) t.setDate(t.getDate() + 1);
-  return t.getTime();
-}
-
-/* ── 시작 ── */
 function startGame(){
   if(!validate()) return;
-  tH = parseInt(document.getElementById('tH').value) || 0;
-  tM = parseInt(document.getElementById('tM').value) || 0;
-  tS = parseInt(document.getElementById('tS').value) || 0;
 
   const f = document.getElementById('inFirst').value.trim();
   const l = document.getElementById('inLast').value.trim();
   playerName = l + f;
 
-  openAt = calcOpenAt(); // 목표 시각 ms 고정
+  startedAt = Date.now();
+  openAt    = startedAt + 20000;  // 정확히 20초 뒤
 
   phase = 'wait'; hasPressed = false;
   setInputsDisabled(true);
@@ -308,90 +251,92 @@ function startGame(){
   const btn = document.getElementById('subBtn');
   btn.disabled = false;
   btn.className = 'sub-btn locked';
-  btn.textContent = '참여 신청 (대기 중 — 일찍 누르면 실격!)';
+  btn.textContent = '참여 신청 (00이 되면 눌러! 일찍 누르면 실격)';
 
   setBarCls('wait');
-  watchLoop();
+  countdownLoop();
 }
 
-/* ── 대기 루프: openAt 까지 카운트다운 ── */
-function watchLoop(){
+/* 40 → 59 카운트업 후 00 열림 */
+function countdownLoop(){
   if(phase !== 'wait' && phase !== 'near') return;
 
-  const rem = openAt - Date.now(); // 남은 ms
+  const rem     = openAt - Date.now();
+  if(rem <= 0){ openNow(); return; }
 
-  if(rem <= 0){
-    openNow();
-    return;
-  }
+  const elapsed = Date.now() - startedAt;
+  const sec     = 40 + Math.floor(elapsed / 1000); // 40, 41 ... 59
+  const ms      = Math.floor(elapsed % 1000);
 
-  // 상태 표시: 남은 시간 없이 그냥 색만 바꿔줌
-  if(rem <= 10000) setBarCls('near');
-  else             setBarCls('wait');
+  document.getElementById('tBig').textContent = pad2(Math.min(sec, 59));
+  document.getElementById('tMs').textContent  = pad3(ms);
 
-  // 상태 텍스트: 목표 시각 표시
-  document.getElementById('tStatus').textContent =
-    pad2(tH) + ':' + pad2(tM) + ':' + pad2(tS) + ' 에 열립니다 — 대기 중';
+  if(rem <= 5000) setBarCls('near');
+  else            setBarCls('wait');
 
-  rafId = requestAnimationFrame(watchLoop);
+  document.getElementById('tLabel').textContent = '대기 중 — 00이 되면 눌러요!';
+  rafId = requestAnimationFrame(countdownLoop);
 }
 
-/* ── 열림: openAt 이후 경과 ms 카운트업 ── */
+/* 00:000 — 이제 누르는 순간 */
 function openNow(){
   phase = 'open';
   setBarCls('open');
 
   const btn = document.getElementById('subBtn');
   btn.className = 'sub-btn go';
-  btn.textContent = '참여 신청 ← 지금 눌러!';
+  btn.textContent = '참여 신청 ← 지금!';
 
   function countUp(){
     if(phase !== 'open') return;
-    const el  = Date.now() - openAt;         // openAt 기준 정확한 경과 ms
+    const el  = Date.now() - openAt;   // openAt 기준 경과 ms
     const s   = Math.floor(el / 1000);
-    const ms3 = Math.floor(el % 1000).toString().padStart(3, '0');
-    document.getElementById('tStatus').textContent = '+' + s + '초 ' + ms3;
+    const ms3 = Math.floor(el % 1000);
+    document.getElementById('tBig').textContent = pad2(s);
+    document.getElementById('tMs').textContent  = pad3(ms3);
+    document.getElementById('tLabel').textContent = '지금 눌러!';
     rafId = requestAnimationFrame(countUp);
   }
   rafId = requestAnimationFrame(countUp);
 }
 
-/* ── 버튼 클릭 ── */
+/* 버튼 클릭 */
 function pressBtn(){
   if(phase === 'idle' || hasPressed) return;
   hasPressed = true;
 
-  // 일찍 누름 → 실격
+  // 일찍 누름
   if(phase === 'wait' || phase === 'near'){
     cancelAnimationFrame(rafId);
     phase = 'done';
     const earlyMs = openAt - Date.now();
+    const es = Math.floor(earlyMs / 1000);
+    const em = Math.floor(earlyMs % 1000);
+    document.getElementById('tBig').textContent = pad2(es);
+    document.getElementById('tMs').textContent  = pad3(em);
     setBarCls('early');
-    document.getElementById('tStatus').textContent =
-      pad2(tH)+':'+pad2(tM)+':'+pad2(tS) + ' 보다 ' + (earlyMs/1000).toFixed(3) + '초 일찍';
-    lockBtn();
-    addLog(playerName, null, true);
-    endState();
+    document.getElementById('tLabel').textContent = '실격! ' + (earlyMs/1000).toFixed(3) + '초 일찍 눌렀어요';
+    lockBtn(); addLog(playerName, null, true); endState();
     return;
   }
 
   // 정상 클릭
   if(phase === 'open'){
     cancelAnimationFrame(rafId);
-    const diffMs = Date.now() - openAt;  // openAt 고정값 기준으로 정확히 계산
+    const diffMs = Date.now() - openAt;  // openAt 고정값으로 정확히 계산
     phase = 'done';
     const s   = Math.floor(diffMs / 1000);
-    const ms3 = Math.floor(diffMs % 1000).toString().padStart(3, '0');
+    const ms3 = Math.floor(diffMs % 1000);
+    document.getElementById('tBig').textContent = pad2(s);
+    document.getElementById('tMs').textContent  = pad3(ms3);
     setBarCls('done');
-    document.getElementById('tStatus').textContent = '+' + s + '초 ' + ms3;
-    lockBtn();
-    addLog(playerName, diffMs, false);
-    endState();
+    document.getElementById('tLabel').textContent = '+' + (diffMs/1000).toFixed(3) + '초';
+    lockBtn(); addLog(playerName, diffMs, false); endState();
   }
 }
 
 function setBarCls(cls){
-  document.getElementById('tBar').className = 'timer-bar ' + cls;
+  document.getElementById('tBar').className = 'timer-bar' + (cls ? ' '+cls : '');
 }
 function lockBtn(){
   const b = document.getElementById('subBtn');
@@ -404,9 +349,11 @@ function endState(){
 }
 function resetGame(){
   cancelAnimationFrame(rafId);
-  phase = 'idle'; hasPressed = false; openAt = 0;
-  setBarCls('idle');
-  document.getElementById('tStatus').textContent = '목표 시각을 설정하고 시작하세요';
+  phase = 'idle'; hasPressed = false; startedAt = 0; openAt = 0;
+  document.getElementById('tBig').textContent = '40';
+  document.getElementById('tMs').textContent  = '000';
+  setBarCls('');
+  document.getElementById('tLabel').textContent = '입력 후 시작을 누르세요';
   document.getElementById('startBtn').style.display = 'inline-block';
   document.getElementById('resetBtn').style.display = 'none';
   const b = document.getElementById('subBtn');
@@ -414,12 +361,12 @@ function resetGame(){
   setInputsDisabled(false);
 }
 function setInputsDisabled(v){
-  ['inFirst','inLast','inBirth','inPhone','tH','tM','tS'].forEach(id => {
+  ['inFirst','inLast','inBirth','inPhone'].forEach(id => {
     const el = document.getElementById(id); if(el) el.disabled = v;
   });
 }
 
-/* ── 로그 ── */
+/* 로그 */
 function addLog(name, ms, isEarly){
   const b = document.getElementById('inBirth').value.trim();
   const p = document.getElementById('inPhone').value.trim();
@@ -451,9 +398,7 @@ function renderLog(){
       diff.textContent = '실격';
       diff.classList.add('disq');
     } else {
-      const s   = Math.floor(entry.ms / 1000);
-      const ms3 = Math.floor(entry.ms % 1000).toString().padStart(3, '0');
-      diff.textContent = '+' + s + '초 ' + ms3;
+      diff.textContent = '+' + (entry.ms/1000).toFixed(3) + '초';
       if(valid[0] === entry) diff.classList.add('best');
     }
 
